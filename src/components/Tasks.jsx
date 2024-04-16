@@ -10,6 +10,10 @@ const Tasks = () => {
 	const { loading, tasks, error } = useSelector((state) => state.task);
 	const [form] = Form.useForm();
 	const [isChecked, setIsChecked] = useState(false);
+	const [editChecked, setEditChecked] = useState({
+		title: "",
+		completed: false,
+	});
 	const [addTask, setAddTask] = useState({
 		title: "",
 		completed: false,
@@ -43,18 +47,6 @@ const Tasks = () => {
 
 	const handleCheckboxChange = () => {
 		setIsChecked(!isChecked);
-		if (isChecked) {
-			setAddTask({
-				...addTask,
-				completed: true,
-			});
-		} else {
-			setAddTask({
-				...addTask,
-				completed: false,
-			});
-		}
-		console.log(addTask);
 	};
 
 	// ADD TASK //////////////////////////////////
@@ -83,9 +75,11 @@ const Tasks = () => {
 
 	const handleDeleteTask = async (id) => {
 		try {
-			const res = await axios.delete(`http://localhost:3000/tasks/${id}`);
-			const data = await res.data;
-			dispatch(fetchTasks());
+			if (confirm("Are you sure you want to delete this task?")) {
+				const res = await axios.delete(`http://localhost:3000/tasks/${id}`);
+				const data = await res.data;
+				dispatch(fetchTasks());
+			}
 		} catch (error) {
 			console.log(error);
 		} finally {
@@ -93,10 +87,15 @@ const Tasks = () => {
 		}
 	};
 
+	const totalTasks = tasks.length;
+
 	return (
 		<div>
-			<h1>TASKS</h1>
-			<div className="input-group mb-3 w-50 mx-auto bg-slate-400 rounded p-2">
+			<div className="text-center bg-orange-300 bg-opacity-50 p-2 mb-3 font-extrabold">
+				<h1>TO DO APP</h1>
+				<h3>Number of tasks: {totalTasks}</h3>
+			</div>
+			<div className="input-group w-50 mx-auto bg-slate-400 rounded p-2">
 				<Form
 					onFinish={handleAddTask}
 					form={form}
@@ -172,7 +171,13 @@ const Tasks = () => {
 								{task.title}
 							</td>
 							<td>
-								<Checkbox onChange={() => handleCheckboxChange(task.id)}>
+								<Checkbox
+									onChange={(e) =>
+										handleCheckboxChange({
+											...editChecked,
+											completed: e.target.value,
+										})
+									}>
 									Complete
 								</Checkbox>
 							</td>
